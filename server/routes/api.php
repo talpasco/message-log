@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::post('messageLog', [LogController::class, 'getData']);
+Route::get('messageLog', [LogController::class, 'getData']);
+//TODO: with params -> Route::get('messageLog/{from}{to}', [LogController::class, 'getData']);
 
 Route::get('messageLog/{field}', [LogController::class, 'getSetFilterValues']);

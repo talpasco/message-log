@@ -15,7 +15,7 @@ class LogController extends Controller
         return $values;
     }
 
-    public function getData(Request $request)
+    public function getData(Request $request) //TODO: (Request $request, $from, $to)
     {
         $SQL = $this->buildSql($request);
         // for debugging purposes - logs are saved to storage/logs/laravel.log
