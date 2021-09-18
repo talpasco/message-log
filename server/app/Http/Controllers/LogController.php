@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Log;
 class LogController extends Controller
 {
 
+    /**
+     * Get & Set the filter values.
+     *
+     * @param Request $request
+     * @param string $field
+     * @return \Illuminate\Http\Response|\Laravel\Http\ResponseFactory
+     */
     public function getSetFilterValues(Request $request, $field)
     {
         if ($field == "cnt_title") {
@@ -22,6 +29,12 @@ class LogController extends Controller
         return $values;
     }
 
+    /**
+     * Get the data to populate the grid filtered by date range and Limit and Offset calculation.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response|\Laravel\Http\ResponseFactory
+     */
     public function getData(Request $request)
     {
         Log::debug($request->input('dateFrom'));
@@ -43,6 +56,13 @@ class LogController extends Controller
         return ['rows' => $resultsForPage, 'lastRow' => $rowCount];
     }
 
+    /**
+     * Calculate row count.
+     *
+     * @param Request $request
+     * @param array $results
+     * @return \Illuminate\Http\Response|\Laravel\Http\ResponseFactory
+     */
     private function getRowCount($request, $results)
     {
         if (is_null($results) || !isset($results) || sizeof($results) == 0) {
@@ -59,6 +79,13 @@ class LogController extends Controller
         }
     }
 
+    /**
+     * Cut results to page size - pagination purpose.
+     *
+     * @param Request $request
+     * @param array $results
+     * @return \Illuminate\Http\Response|\Laravel\Http\ResponseFactory
+     */
     private function cutResultsToPageSize($request, $results)
     {
         $pageSize = $request['endRow'] - $request['startRow'];

@@ -17,9 +17,5 @@ class DatabaseSeeder extends Seeder
         $this->call(CountrySeeder::class);
         $this->call(NumberSeeder::class);
         $this->call(LogSeeder::class);
-        //\App\Models\User::factory()->count(30)->create();
-        // \App\Models\Country::factory()->count(30)->create();
-        // \App\Models\Number::factory()->count(30)->create();
-        // \App\Models\Log::factory()->count(30)->create();
     }
 }

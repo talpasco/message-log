@@ -19,3 +19,17 @@
 - cd client 
 - npm install
 - npm run start
+
+## Usage
+- Date range picker:
+    ![Image](doc/dateRange.png)
+
+- Country and User filters:
+    ![Image](doc/filters.png)
+
+- The stored-procedure used within the logs query (And controller):
+    server\database\db-routines\logs.sql
+
+- The DB scheme and stored-procedure are being migrated
+  (php artisan migrate:fresh --seed),
+  And mock data is being seeded (server\database\data folder)
