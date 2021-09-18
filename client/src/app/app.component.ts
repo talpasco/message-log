@@ -21,8 +21,8 @@ export class AppComponent {
 
     this.columnDefs = [
       {
-        field: 'log_id',
-        filter: 'agSetColumnFilter',
+        field: 'log_created',
+        filter: 'agDateColumnFilter',
         filterParams: {
           values: params => {
             const field = params.colDef.field;
@@ -31,7 +31,7 @@ export class AppComponent {
         }
       },
       {
-        field: 'usr_id', filter: 'agSetColumnFilter',
+        field: 'cnt_title', filter: 'agSetColumnFilter',
         filterParams: {
           values: params => {
             const field = params.colDef.field;
@@ -40,7 +40,7 @@ export class AppComponent {
         },
       },
       {
-        field: 'num_id',
+        field: 'usr_name',
         enableRowGroup: true,
         filter: 'agSetColumnFilter',
         filterParams: {
@@ -50,9 +50,8 @@ export class AppComponent {
           }
         }
       },
-      { field: 'log_message', enableRowGroup: true },
-      { field: 'log_success', sortable: false },
-      { field: 'log_created', enableValue:true, aggFunc: 'sum', allowedAggFuncs:['avg','count','sum','min','max']}
+      { field: 'success' },
+      { field: 'failed' }
     ];
     this.defaultColDef = {
       flex: 1,
@@ -66,7 +65,7 @@ export class AppComponent {
     this.autoGroupColumnDef = {
       headerName: 'Group',
       minWidth: 250,
-      field: 'num_id',
+      field: 'created',
       filter: 'agSetColumnFilter',
       filterParams: {
         values: params => {
@@ -84,10 +83,14 @@ export class AppComponent {
     const datasource = {
       getRows: params => {
         console.log('[Datasource] - rows requested by grid: startRow = ' + params.request.startRow + ', endRow = ' + params.request.endRow);
-
-        // if filtering on group column, then change the filterModel key to have num_id as key
+        let range = params.request.filterModel.log_created;
+        if (range) {
+          params.request.dateFrom = range.dateFrom;
+          params.request.dateTo = range.dateTo;
+        }
+        // if filtering on group column, then change the filterModel key to have created as key
         if (params.request.filterModel['ag-Grid-AutoColumn']) {
-          params.request.filterModel['num_id'] = params.request.filterModel['ag-Grid-AutoColumn'];
+          params.request.filterModel['created'] = params.request.filterModel['ag-Grid-AutoColumn'];
           delete params.request.filterModel['ag-Grid-AutoColumn'];
         }
 

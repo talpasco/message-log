@@ -27,7 +27,7 @@ class CreateLogsTable extends Migration
             $table->timestamps();
         });
         $logs_routines = File::get("database/db-routines/logs.sql");
-        DB::unprepared($logs_routines);//Restore Stored Procedures
+        DB::unprepared($logs_routines);//Migrate Stored Procedures
     }
 
     /**
@@ -37,6 +37,7 @@ class CreateLogsTable extends Migration
      */
     public function down()
     {
+        DB::unprepared('DROP PROCEDURE IF EXISTS LOGS_GetList');
         Schema::dropIfExists('logs');
     }
 }

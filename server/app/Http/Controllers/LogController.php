@@ -11,139 +11,39 @@ class LogController extends Controller
 
     public function getSetFilterValues(Request $request, $field)
     {
-        $values = DB::table('logs')->select($field)->distinct()->orderBy($field, 'asc')->pluck($field);
+        if ($field == "cnt_title") {
+            $table = "countries";
+        } else if ($field == "usr_name") {
+            $table = "users";
+        } else {
+            $table = "logs";
+        }
+        $values = DB::table($table)->select($field)->distinct()->orderBy($field, 'asc')->pluck($field);
         return $values;
     }
 
-    public function getData(Request $request) //TODO: (Request $request, $from, $to)
+    public function getData(Request $request)
     {
-        $SQL = $this->buildSql($request);
+        Log::debug($request->input('dateFrom'));
+        Log::debug($request->input('dateTo'));
+        $dateFrom = $request->input('dateFrom') ? date($request->input('dateFrom')) : date('2000-01-01');
+        $dateTo = $request->input('dateTo') ? date($request->input('dateTo')) : date_create('now')->format('Y-m-d');;
+        //Limit and Offset calculation
+        $startRow = $request->input('startRow');
+        $endRow = $request->input('endRow');
+        $pageSize = ($endRow - $startRow) + 1;
+        $params = array($dateFrom, $dateTo, $pageSize, $startRow);
+        Log::debug($params);
+        $results = DB::select('call LOGS_GetList(?,?,?,?)', $params);
         // for debugging purposes - logs are saved to storage/logs/laravel.log
-        Log::debug($SQL); 
-        $results = DB::select($SQL);
+        Log::debug($results);
+
         $rowCount = $this->getRowCount($request, $results);
         $resultsForPage = $this->cutResultsToPageSize($request, $results);
         return ['rows' => $resultsForPage, 'lastRow' => $rowCount];
     }
 
-    public function buildSql(Request $request)
-    {
-        $selectSql = $this->createSelectSql($request);
-        $fromSql = " FROM logs ";
-        $whereSql = $this->whereSql($request);
-        $groupBySql = $this->groupBySql($request);
-        $orderBySql = $this->orderBySql($request);
-        $limitSql = $this->createLimitSql($request);
-
-        $SQL = $selectSql . $fromSql . $whereSql . $groupBySql . $orderBySql . $limitSql;
-        return $SQL;
-    }
-
-    public function createSelectSql(Request $request)
-    {
-        $rowGroupCols = $request->input('rowGroupCols');
-        $valueCols = $request->input('valueCols');
-        $groupKeys = $request->input('groupKeys');
-
-        if ($this->isDoingGrouping($rowGroupCols, $groupKeys)) {
-            $colsToSelect = [];
-
-            $rowGroupCol = $rowGroupCols[sizeof($groupKeys)];
-            array_push($colsToSelect, $rowGroupCol['field']);
-
-            foreach ($valueCols as $key => $value) {
-                array_push($colsToSelect, $value['aggFunc'] . '(' . $value['field'] . ') as ' . $value['field']);
-            }
-
-            return "SELECT " . join(", ", $colsToSelect);
-        }
-
-        return "SELECT * ";
-    }
-
-    public function whereSql(Request $request)
-    {
-        $rowGroupCols = $request->input('rowGroupCols');
-        $groupKeys = $request->input('groupKeys');
-        $filterModel = $request->input('filterModel');
-
-        $whereParts = [];
-
-        if (sizeof($groupKeys) > 0) {
-            foreach ($groupKeys as $key => $value) {
-                $colName = $rowGroupCols[$key]['field'];
-                array_push($whereParts, "{$colName} = '{$value}'");
-            }
-        }
-
-        if ($filterModel) {
-            foreach ($filterModel as $key => $value) {
-                if ($value['filterType'] == 'set') {
-                    array_push($whereParts, $key . ' IN ("'  . join('", "', $value['values']) . '")');
-                }
-            }
-        }
-
-        if (sizeof($whereParts) > 0) {
-            return " WHERE " . join(' and ', $whereParts);
-        } else {
-            return "";
-        }
-    }
-
-    public function groupBySql(Request $request)
-    {
-
-        $rowGroupCols = $request->input('rowGroupCols');
-        $groupKeys = $request->input('groupKeys');
-
-        if ($this->isDoingGrouping($rowGroupCols, $groupKeys)) {
-            $colsToGroupBy = [];
-
-            $rowGroupCol = $rowGroupCols[sizeof($groupKeys)];
-            array_push($colsToGroupBy, $rowGroupCol['field']);
-
-            return " GROUP BY " . join(", ", $colsToGroupBy);
-        } else {
-            // select all columns
-            return "";
-        }
-    }
-
-    public function orderBySql(Request $request)
-    {
-        $sortModel = $request->input('sortModel');
-
-        if ($sortModel) {
-            $sortParts = [];
-
-            foreach ($sortModel as $key => $value) {
-                array_push($sortParts, $value['colId'] . " " . $value['sort']);
-            }
-
-            if (sizeof($sortParts) > 0) {
-                return " ORDER BY " . join(", ", $sortParts);
-            } else {
-                return '';
-            }
-        }
-    }
-
-    public function isDoingGrouping($rowGroupCols, $groupKeys)
-    {
-        return sizeof($rowGroupCols) > sizeof($groupKeys);
-    }
-
-    public function createLimitSql(Request $request)
-    {
-        $startRow = $request->input('startRow');
-        $endRow = $request->input('endRow');
-        $pageSize = ($endRow - $startRow) + 1;
-
-        return " LIMIT {$pageSize} OFFSET {$startRow};";
-    }
-
-    public function getRowCount($request, $results)
+    private function getRowCount($request, $results)
     {
         if (is_null($results) || !isset($results) || sizeof($results) == 0) {
             // or return null
@@ -159,7 +59,7 @@ class LogController extends Controller
         }
     }
 
-    public function cutResultsToPageSize($request, $results)
+    private function cutResultsToPageSize($request, $results)
     {
         $pageSize = $request['endRow'] - $request['startRow'];
 

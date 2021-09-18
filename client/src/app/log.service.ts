@@ -24,7 +24,7 @@ export class messageLogService {
     return this.http.post(this.apiUrl, header, this.httpOptions)
       .pipe(
         tap(_ => this.log('fetched Logs')),
-        catchError(this.handleError<any>('getLogs',))
+        catchError(this.handleError<any>('getLogs',[]))
       );
   }
 
